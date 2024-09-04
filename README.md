@@ -1,4 +1,5 @@
 # React + Vite
+The project folder is a bit skewed due to errors while merging commits.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
