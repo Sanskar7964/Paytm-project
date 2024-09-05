@@ -1,22 +1,27 @@
-import { useSearchParams } from 'react-router-dom';
+
+
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
 
 export const SendMoney = () => {
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const id = searchParams.get('id');
     const name = searchParams.get('name');
     const [amount, setAmount] = useState(0);
     const [successMessage, setSuccessMessage] = useState("");
     const [error, setError] = useState("");
+    const [newBalance, setNewBalance] = useState(null);
 
     const handleTransfer = async () => {
         setSuccessMessage("");
         setError("");
+        setNewBalance(null);
         try {
             const response = await axios.post(
                 'http://localhost:3000/api/v1/account/transfer',
-                { to: id, amount },
+                { to: id, amount: parseFloat(amount) },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -25,13 +30,18 @@ export const SendMoney = () => {
             );
             setAmount('');
             setSuccessMessage('Transfer completed successfully!');
+            setNewBalance(response.data.senderNewBalance);
+            
+            // Navigate back to dashboard after successful transaction
+            setTimeout(() => {
+                navigate('/dashboard');
+            }, 2000);
 
         } catch (error) {
             console.error('Transfer failed:', error.response ? error.response.data : error.message);
             setError(error.response?.data?.message || 'Something went wrong, please try again.');
         }
     };
-
 
     return (
         <div className="flex justify-center h-screen bg-gray-100">
@@ -59,6 +69,7 @@ export const SendMoney = () => {
                                 </label>
                                 <input
                                     onChange={(e) => setAmount(e.target.value)}
+                                    value={amount}
                                     type="number"
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                     id="amount"
@@ -74,6 +85,11 @@ export const SendMoney = () => {
                             {successMessage && (
                                 <div className="bg-green-500 flex items-center justify-center p-2 rounded-lg">
                                     <span>{successMessage}</span>
+                                </div>
+                            )}
+                            {newBalance !== null && (
+                                <div className="bg-blue-500 flex items-center justify-center p-2 rounded-lg">
+                                    <span>New balance: Rs {newBalance}</span>
                                 </div>
                             )}
                             {error && (
